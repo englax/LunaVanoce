@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "luna-vanoce",
+  "name": "Luna Vánoce",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "minAndroidSdk": 26,
+  "minAppVersion": "2026.11.14",
+  "entryClass": "cz.domov.luna.LunaVanoce",
+  "description": "Vánoční vzhled pro Lunu: hlasový overlay s fialovou ozdobou a světýlky a adventní kalendář s věncem jako spořič obrazovky.",
+  "author": "Jakub",
+  "license": "Apache-2.0",
+  "capabilities": [
+    "overlay",
+    "host.read",
+    "voice.skin",
+    "voice.text",
+    "screensaver"
+  ],
+  "icon": "icon.png",
+  "voiceSkinThumbnail": "voice-skin.webp",
+  "settings": [
+    {
+      "key": "weatherEntity",
+      "type": "entity",
+      "title": "Počasí",
+      "default": "",
+      "group": "Adventní kalendář",
+      "description": "Entita počasí, kterou spořič ukazuje (stejná jako na Domově). Prázdné: spořič počasí neukazuje."
+    }
+  ],
+  "groups": [
+    {
+      "title": "Adventní kalendář"
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+@font-face {
+  font-family: 'Nunito';
+  src: url('../fonts/Nunito.ttf') format('truetype');
+  font-weight: 200 1000;
+  font-display: block;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1A100C;
+}
+
+#scena {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 780px;
+  height: 360px;
+  overflow: hidden;
+  transform-origin: 0 0;
+  font-family: 'Nunito', ui-rounded, system-ui, sans-serif;
+  color: #FFF3E2;
+}
+
+.pozadi {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(75% 65% at 0% 100%, rgba(255, 132, 50, 0.30), rgba(255, 132, 50, 0) 70%),
+    radial-gradient(60% 60% at 100% 0%, rgba(160, 70, 140, 0.32), rgba(160, 70, 140, 0) 70%),
+    linear-gradient(180deg, #26170F 0%, #1A100C 100%);
+}
+
+.obklad {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background: repeating-linear-gradient(90deg, rgba(255, 222, 184, 0.6) 0 1px, transparent 1px 52px);
+}
+
+.svetla { position: absolute; left: 0; right: 0; top: 0; height: 30px; z-index: 2; }
+.svetla svg { position: absolute; left: 0; top: 0; }
+.zarovka {
+  position: absolute;
+  width: 7px;
+  height: 10px;
+  margin-left: -3.5px;
+  border-radius: 50% 50% 45% 45%;
+  animation: blik 2.6s ease-in-out infinite;
+}
+
+.mrizka {
+  position: absolute;
+  inset: 34px 26px 20px 26px;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: 'info deska' 'odpocet deska';
+  gap: 10px 24px;
+  z-index: 1;
+}
+.mrizka.zima {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'info';
+}
+.mrizka.zima .odpocet, .mrizka.zima .deska { display: none; }
+
+.info { grid-area: info; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; align-self: start; }
+.zima .info { align-items: center; align-self: center; text-align: center; }
+.datum { font-size: 15px; font-weight: 800; color: #F6D7B0; letter-spacing: 0.2px; }
+.hodiny { font-size: 76px; font-weight: 900; line-height: 0.95; letter-spacing: -2px; color: #FFF4E4; text-shadow: 0 2px 22px rgba(255, 150, 60, 0.28); font-variant-numeric: tabular-nums; }
+.zima .hodiny { font-size: 108px; }
+.pocasi {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 13px 6px 9px;
+  border-radius: 999px;
+  background: rgba(255, 236, 214, 0.08);
+  border: 1px solid rgba(255, 214, 170, 0.2);
+}
+.pocasi svg { display: block; }
+.teplota { font-size: 16px; font-weight: 900; color: #FFF4E4; }
+.nazev { font-size: 14px; font-weight: 800; color: #F2D9BD; }
+.skryt { display: none !important; }
+
+.odpocet { grid-area: odpocet; align-self: end; display: flex; align-items: center; gap: 12px; }
+.venec { position: relative; width: 112px; height: 88px; flex-shrink: 0; }
+.venec svg { position: absolute; left: 0; top: 0; }
+.zar { position: absolute; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 186, 90, 0.55), rgba(255, 186, 90, 0) 70%); }
+.svicka { position: absolute; width: 10px; border-radius: 2px 2px 3px 3px; background: linear-gradient(90deg, #8A1D22 0%, #CF4744 45%, #9C272B 100%); box-shadow: inset 0 1px 0 rgba(255, 220, 210, 0.45); }
+.knot { position: absolute; width: 1.5px; height: 4px; background: #2A1A12; }
+.plamen {
+  position: absolute;
+  width: 8px;
+  height: 13px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(circle at 50% 72%, #FFF7CF 0%, #FFC94F 42%, #FF7A1A 82%);
+  box-shadow: 0 0 10px 3px rgba(255, 170, 60, 0.6);
+  transform-origin: 50% 100%;
+  animation: plamen 1.3s ease-in-out infinite alternate;
+}
+.texty { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.horni { font-size: 13px; font-weight: 800; color: #F1CFA6; letter-spacing: 0.2px; }
+.cislo { display: flex; align-items: baseline; gap: 6px; }
+.velke { font-size: 46px; font-weight: 900; line-height: 1; color: #FFC461; text-shadow: 0 0 20px rgba(255, 170, 60, 0.45); }
+.jednotka { font-size: 20px; font-weight: 900; color: #FFE6C2; }
+.nadpis { font-size: 31px; font-weight: 900; line-height: 1.05; color: #FFC461; text-shadow: 0 0 20px rgba(255, 170, 60, 0.45); }
+.spodni { font-size: 12.5px; font-weight: 700; color: #E9C9A6; }
+
+.deska {
+  grid-area: deska;
+  position: relative;
+  min-height: 0;
+  border-radius: 16px;
+  padding: 10px;
+  background: linear-gradient(160deg, #74502F 0%, #573823 55%, #4A2E1C 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 222, 184, 0.28), inset 0 0 0 2px rgba(40, 22, 12, 0.45), 0 16px 34px rgba(0, 0, 0, 0.5);
+}
+.deska::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  opacity: 0.18;
+  background: repeating-linear-gradient(176deg, rgba(255, 220, 180, 0.35) 0 1px, transparent 1px 9px);
+}
+.dvirka { position: relative; height: 100%; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 6px; }
+.dvere { position: relative; min-height: 0; border-radius: 8px; }
+.lic {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -2px 0 rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  transform-origin: 0% 50%;
+}
+.lic .n { font-size: 22px; font-weight: 900; line-height: 1; }
+.lic .klika { position: absolute; right: 5px; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: rgba(110, 62, 34, 0.45); }
+.dnes .lic { transform: perspective(240px) rotateY(-12deg); }
+.dnes .svit { position: absolute; inset: -4px; border-radius: 12px; box-shadow: 0 0 18px 6px rgba(255, 186, 84, 0.78), 0 0 0 2px #FFD27A; animation: zar 2.6s ease-in-out infinite; }
+.dnes .paprsek { position: absolute; top: 4px; bottom: 4px; right: -1px; width: 3px; border-radius: 2px; background: #FFE9AE; box-shadow: 0 0 9px 3px rgba(255, 212, 120, 0.95); animation: paprsek 2.6s ease-in-out infinite; }
+.vnitrek {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: radial-gradient(circle at 50% 42%, #3E271A 0%, #21130D 75%);
+  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vnitrek .maleN { position: absolute; left: 6px; top: 4px; font-size: 10px; font-weight: 900; color: rgba(255, 220, 180, 0.45); }
+.vnitrek .kridlo { position: absolute; left: 0; top: 0; bottom: 0; width: 26%; border-radius: 8px 3px 3px 8px; transform: perspective(160px) rotateY(64deg); transform-origin: 0% 50%; box-shadow: 3px 0 5px rgba(0, 0, 0, 0.45); }
+
+.castice { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.kapka { position: absolute; top: 0; width: 1.5px; border-radius: 1px; background: linear-gradient(180deg, rgba(196, 224, 255, 0), rgba(196, 224, 255, 0.7)); animation: dest 1s linear infinite; }
+.sklo { position: absolute; border-radius: 50%; background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 26%), radial-gradient(circle at 50% 52%, rgba(210, 230, 255, 0.07) 0%, rgba(210, 230, 255, 0.07) 52%, rgba(228, 240, 255, 0.55) 68%, rgba(228, 240, 255, 0) 78%); animation: sklo 8s ease-in infinite; }
+.vlocka { position: absolute; top: 0; animation: snih 10s linear infinite; }
+.vlocka span { display: block; border-radius: 50%; box-shadow: 0 0 5px rgba(255, 255, 255, 0.55); animation: vitr 3s ease-in-out infinite alternate; }
+.mlha { position: absolute; inset: 0; background: rgba(214, 202, 190, 0.07); }
+.pruh { position: absolute; left: -30%; width: 160%; height: 44%; background: radial-gradient(50% 50% at 50% 50%, rgba(236, 226, 214, 0.2), rgba(236, 226, 214, 0) 70%); filter: blur(10px); animation: mlha 50s ease-in-out infinite alternate; }
+.blesk { position: absolute; inset: 0; background: #DCE6FF; mix-blend-mode: screen; opacity: 0; animation: blesk 9s linear 1s infinite; }
+
+@keyframes blik { 0%, 100% { opacity: .5; filter: brightness(.8); } 50% { opacity: 1; filter: brightness(1.3); } }
+@keyframes dest { from { transform: translate(0, -30px) rotate(12deg); } to { transform: translate(-89px, 400px) rotate(12deg); } }
+@keyframes sklo { 0% { opacity: 0; transform: translateY(0) scale(.3); } 8% { opacity: .95; transform: translateY(0) scale(1); } 70% { opacity: .9; transform: translateY(5px) scale(1); } 100% { opacity: 0; transform: translateY(48px) scale(.75); } }
+@keyframes snih { from { transform: translateY(-12px); } to { transform: translateY(380px); } }
+@keyframes vitr { from { transform: translateX(-9px); } to { transform: translateX(9px); } }
+@keyframes mlha { from { transform: translateX(-12%); } to { transform: translateX(12%); } }
+@keyframes blesk { 0%, 89%, 100% { opacity: 0; } 90% { opacity: .42; } 91% { opacity: .06; } 92.5% { opacity: .3; } 94% { opacity: 0; } }
+@keyframes zar { 0%, 100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.03); } }
+@keyframes plamen { 0% { transform: scaleY(1) skewX(0deg); } 50% { transform: scaleY(1.14) skewX(3deg); } 100% { transform: scaleY(.92) skewX(-3deg); } }
+@keyframes paprsek { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .zarovka, .plamen, .dnes .svit, .dnes .paprsek, .kapka, .sklo, .vlocka, .vlocka span, .pruh, .blesk { animation: none; }
+  .kapka, .vlocka, .sklo { display: none; }
+}

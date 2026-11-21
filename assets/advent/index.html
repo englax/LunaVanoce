@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adventní kalendář</title>
+<link rel="stylesheet" href="advent.css">
+</head>
+<body>
+<div id="scena" aria-hidden="true">
+  <div class="pozadi"></div>
+  <div class="obklad"></div>
+  <div class="svetla" id="svetla">
+    <svg width="780" height="24" viewBox="0 0 780 24"><path d="M0 6 Q 48.75 22 97.5 6 T 195 6 T 292.5 6 T 390 6 T 487.5 6 T 585 6 T 682.5 6 T 780 6" stroke="#6B5543" stroke-width="1.5" fill="none"/></svg>
+  </div>
+  <div class="mrizka" id="mrizka">
+    <div class="info" id="info">
+      <div class="datum" id="datum"></div>
+      <div class="hodiny" id="hodiny"></div>
+      <div class="pocasi" id="pocasi"><span id="ikona"></span><span class="teplota" id="teplota"></span><span class="nazev" id="nazevPocasi"></span></div>
+    </div>
+    <div class="odpocet" id="odpocet">
+      <div class="venec" id="venec">
+        <svg class="vzadu" width="112" height="88" viewBox="0 0 112 88"><ellipse cx="56" cy="64" rx="46" ry="15" fill="none" stroke="#24483A" stroke-width="15"/><ellipse cx="56" cy="62" rx="46" ry="15" fill="none" stroke="#3B7553" stroke-width="7" stroke-dasharray="4 5"/></svg>
+        <div id="svicky"></div>
+        <svg class="vpredu" width="112" height="88" viewBox="0 0 112 88"><path d="M10 64 A46 15 0 0 0 102 64" fill="none" stroke="#2C5A43" stroke-width="13" stroke-linecap="round"/><path d="M12 66 A46 15 0 0 0 100 66" fill="none" stroke="#4A8A62" stroke-width="5" stroke-dasharray="3 6" stroke-linecap="round"/><circle cx="24" cy="72" r="2.6" fill="#E0413B"/><circle cx="40" cy="78" r="2.4" fill="#E0413B"/><circle cx="73" cy="78" r="2.6" fill="#E0413B"/><circle cx="90" cy="71" r="2.4" fill="#E0413B"/><path d="M56 78 l-9 -5 l0 9 z M56 78 l9 -5 l0 9 z" fill="#E8B44C"/><circle cx="56" cy="78" r="2.6" fill="#F5CF72"/></svg>
+      </div>
+      <div class="texty">
+        <div class="horni" id="horni"></div>
+        <div class="cislo" id="cisloRadek"><span class="velke" id="cislo"></span><span class="jednotka" id="jednotka"></span></div>
+        <div class="nadpis" id="nadpis"></div>
+        <div class="spodni" id="spodni"></div>
+      </div>
+    </div>
+    <div class="deska" id="deska"><div class="dvirka" id="dvirka"></div></div>
+  </div>
+  <div class="castice" id="castice"></div>
+</div>
+<script src="advent.js"></script>
+</body>
+</html>
