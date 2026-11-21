@@ -240,7 +240,7 @@ final class VanocniSkin {
         }
     }
 
-    /** Shared by both looks: the eased voice level, the clock and the thinking dots. */
+    /** Shared by both looks: the eased voice level, the clock, the thinking dots and cheap text updates. */
     abstract class Obsah extends FrameLayout {
         KsTheme theme;
         float shown;
@@ -253,9 +253,9 @@ final class VanocniSkin {
 
         float seconds() { return SystemClock.uptimeMillis() / 1000f; }
 
-        /** Called once per frame by the bauble. Eases the level so 30 readings a second still move smoothly. */
+        /** Called once per frame by the bauble. Eases the level so readings that arrive between frames still move smoothly. */
         void frame(float t) {
-            shown += ((reactive ? level : 0) - shown) * 0.25f;
+            shown += ((reactive ? level : 0) - shown) * 0.35f;
             if (rezim() == Ozdoba.PREMYSLI && answer.isEmpty()) {
                 int d = (int) (t / 0.4f) % 4;
                 if (d != dots) { dots = d; post(this::refresh); }
@@ -271,58 +271,68 @@ final class VanocniSkin {
             return b.toString();
         }
 
-        float sp(float size) { return size * textScale; }
-
         void text(TextView v, float size, int weight, int color) {
             v.setTypeface(Pismo.get(theme, weight));
-            v.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp(size));
+            v.setTextSize(TypedValue.COMPLEX_UNIT_SP, size * textScale);
             v.setTextColor(color);
+        }
+
+        /** Only touches the view when something really changed, so streamed words cost one small layout each. */
+        void set(TextView v, String text) {
+            boolean show = text != null && !text.isEmpty();
+            if (show && !text.contentEquals(v.getText())) v.setText(text);
+            int visibility = show ? VISIBLE : GONE;
+            if (v.getVisibility() != visibility) v.setVisibility(visibility);
         }
 
         abstract void restyle();
         abstract void refresh();
     }
 
-    /** Draws the bauble every frame while it is on screen. */
+    /**
+     * The bauble. It is the only part that animates, it redraws about 30 times a second and only its own small
+     * rectangle, and every frame just blits bitmaps prepared when it got its size.
+     */
     final class Kresba extends View {
+        private static final long FRAME_MS = 33;
         private final Obsah owner;
-        private final Ozdoba ozdoba = new Ozdoba();
-        private final boolean lights;
+        private final Ozdoba ozdoba;
 
         Kresba(Context context, Obsah owner, boolean lights) {
             super(context);
             this.owner = owner;
-            this.lights = lights;
+            this.ozdoba = new Ozdoba(lights);
+        }
+
+        @Override protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            ozdoba.prepare(w, h);
         }
 
         @Override protected void onDraw(Canvas canvas) {
             float t = owner.seconds();
             owner.frame(t);
-            ozdoba.draw(canvas, getWidth(), getHeight(), t, rezim(), owner.shown, lights);
-            if (isShown()) postInvalidateOnAnimation();
+            ozdoba.prepare(getWidth(), getHeight());
+            ozdoba.draw(canvas, t, rezim(), owner.shown);
+            if (isShown()) postInvalidateDelayed(FRAME_MS);
+        }
+
+        @Override protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            ozdoba.release();
         }
     }
 
-    /** Full screen: the warm room dimmed, snow, the bauble and the words beside it. */
+    /** Full screen: the warm room dimmed once, the bauble and the words beside it. Only the bauble ever redraws. */
     final class Plny extends Obsah {
         private final TextView stav, rekl, odpoved;
-        private final Paint zar1 = new Paint(), zar2 = new Paint(), snih = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final float[] vx = new float[18], rychlost = new float[18], velikost = new float[18], posun = new float[18], vitr = new float[18];
-        private final float density;
+        private final Paint zar1 = new Paint(), zar2 = new Paint();
+        private Boolean velkyPrikaz;
 
         Plny(Context context, KsTheme theme) {
             super(context, theme);
             setWillNotDraw(false);
             DisplayMetrics m = context.getResources().getDisplayMetrics();
-            density = m.density;
-            for (int i = 0; i < 18; i++) {
-                vx[i] = ((i * 0.6180339f) % 1f);
-                rychlost[i] = 22 + (i * 13) % 20;
-                velikost[i] = 2f + (i * 5 % 7) / 2.4f;
-                posun[i] = (i * 97) % 400;
-                vitr[i] = 2.5f + (i * 3 % 5) / 2f;
-            }
-            snih.setColor(0xBFFFFFFF);
 
             LinearLayout row = new LinearLayout(context);
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -338,15 +348,15 @@ final class VanocniSkin {
             odpoved = new TextView(context);
             stav.setLetterSpacing(0.15f);
             column.addView(stav);
-            LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p1.topMargin = theme.px(10);
             column.addView(rekl, p1);
-            LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p2.topMargin = theme.px(8);
             column.addView(odpoved, p2);
             rekl.setMaxLines(3);
             rekl.setEllipsize(TextUtils.TruncateAt.END);
-            odpoved.setMaxLines(4);
+            odpoved.setMaxLines(5);
             odpoved.setEllipsize(TextUtils.TruncateAt.END);
             int textSirka = Math.max(theme.px(200), Math.min(theme.px(440), m.widthPixels - sirka - theme.px(110)));
             LinearLayout.LayoutParams pc = new LinearLayout.LayoutParams(textSirka, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -354,7 +364,6 @@ final class VanocniSkin {
             row.addView(column, pc);
             addView(row, new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             restyle();
-            refresh();
         }
 
         @Override protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -363,50 +372,35 @@ final class VanocniSkin {
             zar2.setShader(new RadialGradient(w, 0, Math.max(w, h) * 0.6f, 0x4DA0468C, 0x00A0468C, Shader.TileMode.CLAMP));
         }
 
-        @Override void restyle() {
-            text(stav, 11, 900, 0xFFD2BBFF);
-            text(odpoved, 27, 900, 0xFFFFF4E4);
-            refresh();
-            invalidate();
-        }
-
+        /** Drawn when the overlay appears or the Background setting changes, never per frame. */
         @Override protected void onDraw(Canvas canvas) {
             float opacity = background != null ? background : DEFAULT_BACKGROUND;
             canvas.drawColor(Color.argb(Math.round(255 * opacity), 0x1A, 0x0E, 0x10));
             canvas.drawRect(0, 0, getWidth(), getHeight(), zar1);
             canvas.drawRect(0, 0, getWidth(), getHeight(), zar2);
-            float t = seconds();
-            float h = getHeight() + 20 * density;
-            for (int i = 0; i < 18; i++) {
-                float y = ((t * rychlost[i] * density + posun[i] * density) % h) - 10 * density;
-                float x = vx[i] * getWidth() + (float) Math.sin(t * Math.PI * 2 / vitr[i] + i) * 8 * density;
-                canvas.drawCircle(x, y, velikost[i] * density / 2f, snih);
-            }
-            if (isShown()) postInvalidateOnAnimation();
+        }
+
+        @Override void restyle() {
+            text(stav, 11, 900, 0xFFD2BBFF);
+            text(odpoved, 27, 900, 0xFFFFF4E4);
+            velkyPrikaz = null;
+            refresh();
+            invalidate();
         }
 
         @Override void refresh() {
             if (stav == null) return;
-            stav.setText(stitek());
+            set(stav, stitek());
             boolean listening = rezim() == Ozdoba.POSLOUCHA && answer.isEmpty();
-            if (command.isEmpty()) {
-                rekl.setVisibility(listening ? VISIBLE : GONE);
-                rekl.setText("…");
-            } else {
-                rekl.setVisibility(VISIBLE);
-                rekl.setText("„" + command + "“");
+            if (velkyPrikaz == null || velkyPrikaz != listening) {
+                velkyPrikaz = listening;
+                if (listening) text(rekl, 26, 800, 0xFFFFF4E4);
+                else text(rekl, 17, 800, 0xB8FFF3E2);
             }
-            if (listening) text(rekl, 26, 800, 0xFFFFF4E4);
-            else text(rekl, 17, 800, 0xB8FFF3E2);
-            if (!answer.isEmpty()) {
-                odpoved.setVisibility(VISIBLE);
-                odpoved.setText(answer);
-            } else if (rezim() == Ozdoba.PREMYSLI) {
-                odpoved.setVisibility(VISIBLE);
-                odpoved.setText(moment());
-            } else {
-                odpoved.setVisibility(GONE);
-            }
+            set(rekl, command.isEmpty() ? (listening ? "…" : "") : "„" + command + "“");
+            if (!answer.isEmpty()) set(odpoved, answer);
+            else if (rezim() == Ozdoba.PREMYSLI) set(odpoved, moment());
+            else set(odpoved, "");
         }
     }
 
@@ -414,20 +408,11 @@ final class VanocniSkin {
     final class Dok extends Obsah {
         private final LinearLayout card;
         private final TextView rekl, odpoved;
-        private final Paint[] zarovky = new Paint[8];
-        private final float density;
 
         Dok(Context context, KsTheme theme) {
             super(context, theme);
             DisplayMetrics m = context.getResources().getDisplayMetrics();
-            density = m.density;
-            int[] barvy = {0xFFFFD36B, 0xFFFF8FC7, 0xFFFFA24A, 0xFF7FE3C0};
-            for (int i = 0; i < 8; i++) {
-                zarovky[i] = new Paint(Paint.ANTI_ALIAS_FLAG);
-                zarovky[i].setColor(barvy[i % 4]);
-            }
-            setPadding(0, theme.px(6), 0, 0);
-            setClipToPadding(false);
+            int width = Math.min(theme.px(560), m.widthPixels - theme.px(48));
             card = new LinearLayout(context);
             card.setOrientation(LinearLayout.HORIZONTAL);
             card.setGravity(Gravity.CENTER_VERTICAL);
@@ -445,10 +430,11 @@ final class VanocniSkin {
             LinearLayout.LayoutParams wp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
             wp.leftMargin = theme.px(14);
             card.addView(words, wp);
-            int width = Math.min(theme.px(560), m.widthPixels - theme.px(48));
-            addView(card, new FrameLayout.LayoutParams(width, LayoutParams.WRAP_CONTENT));
+            FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(width, LayoutParams.WRAP_CONTENT);
+            cp.topMargin = theme.px(6);
+            addView(card, cp);
+            addView(new Svetylka(context, width), new FrameLayout.LayoutParams(width, theme.px(14)));
             restyle();
-            refresh();
         }
 
         @Override void restyle() {
@@ -465,25 +451,40 @@ final class VanocniSkin {
 
         @Override void refresh() {
             if (rekl == null) return;
-            rekl.setText(command.isEmpty() ? stitek() : "„" + command + "“");
-            if (!answer.isEmpty()) odpoved.setText(answer);
-            else if (rezim() == Ozdoba.PREMYSLI) odpoved.setText(moment());
-            else odpoved.setText(command.isEmpty() ? "Poslouchám" : "");
-            odpoved.setVisibility(odpoved.getText().length() == 0 ? GONE : VISIBLE);
+            set(rekl, command.isEmpty() ? stitek() : "„" + command + "“");
+            if (!answer.isEmpty()) set(odpoved, answer);
+            else if (rezim() == Ozdoba.PREMYSLI) set(odpoved, moment());
+            else set(odpoved, command.isEmpty() ? "Poslouchám" : "");
+        }
+    }
+
+    /** Eight fairy lights on the docked card's top edge, in their own small view so the card itself never redraws. */
+    final class Svetylka extends View {
+        private final Paint[] zarovky = new Paint[8];
+        private final float density;
+        private final int sirka;
+
+        Svetylka(Context context, int sirka) {
+            super(context);
+            this.sirka = sirka;
+            density = context.getResources().getDisplayMetrics().density;
+            int[] barvy = {0xFFFFD36B, 0xFFFF8FC7, 0xFFFFA24A, 0xFF7FE3C0};
+            for (int i = 0; i < 8; i++) {
+                zarovky[i] = new Paint(Paint.ANTI_ALIAS_FLAG);
+                zarovky[i].setColor(barvy[i % 4]);
+            }
         }
 
-        @Override protected void dispatchDraw(Canvas canvas) {
-            super.dispatchDraw(canvas);
-            float t = seconds();
-            float left = card.getLeft() + 26 * density, right = card.getRight() - 26 * density;
-            float y = card.getTop();
+        @Override protected void onDraw(Canvas canvas) {
+            float t = SystemClock.uptimeMillis() / 1000f;
+            float left = 26 * density, right = sirka - 26 * density, y = 6 * density;
             for (int i = 0; i < 8; i++) {
                 float x = left + (right - left) * i / 7f;
                 float b = 0.35f + 0.65f * Ozdoba.vlna(t, 1.6f + (i % 3) * 0.4f, i * 1.3f);
                 zarovky[i].setAlpha(Math.round(255 * b));
                 canvas.drawOval(x - 3 * density, y - 4 * density, x + 3 * density, y + 4 * density, zarovky[i]);
             }
-            if (isShown()) postInvalidateOnAnimation();
+            if (isShown()) postInvalidateDelayed(80);
         }
     }
 }
